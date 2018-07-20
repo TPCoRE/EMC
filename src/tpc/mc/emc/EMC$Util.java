@@ -2,16 +2,28 @@ package tpc.mc.emc;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.src.AbstractClientPlayer;
 import net.minecraft.src.EntityPlayer;
+import net.minecraft.src.EntityPlayerMP;
 import net.minecraft.src.Minecraft;
 import net.minecraft.src.ModelBiped;
 import net.minecraft.src.WorldServer;
 import tpc.mc.emc.bodyskill.Packet0;
 
 public final class EMC$Util {
+	
+	/**
+	 * Add a new element
+	 * */
+	public static final <T> T[] concat(T[] a, T b) {
+		T[] result = Arrays.copyOf(a, a.length + 1);
+		result[a.length] = b;
+		return result;
+	}
 	
 	/**
 	 * Shutdown
@@ -36,39 +48,99 @@ public final class EMC$Util {
 	}
 	
 	/**
-	 * Animation
+	 * Animation, could be invoke by client, client-model, server
 	 * */
 	public static final void animation(Object obj, Object model) {
 		if(!(obj instanceof EntityPlayer)) return;
 		EntityPlayer player = (EntityPlayer) obj;
 		
 		//call body skill support
-		tpc.mc.emc.bodyskill.Pool bodyskill = EMC$Util.bodyskill((EntityPlayer) player);
-		if(bodyskill != null) {
-			boolean flag = model != null;
+		tpc.mc.emc.bodyskill.Pool bodyskill = EMC$Util.bodyskill(player);
+		if(bodyskill != null) { //check start act(client-model only), and acting in both side
+			if(model != null && activetime((AbstractClientPlayer) player) == 0) bodyskill.activate(player, model);
 			
-			if(flag && activetime((AbstractClientPlayer) player) == 0) bodyskill.activate(player, model);
-			bodyskill.activating(player, model, player.worldObj.isRemote ? EMC$Util.activetime((AbstractClientPlayer) player, flag) : -1);
+			bodyskill.activating(player, model, player.worldObj.isRemote ? EMC$Util.activetime((AbstractClientPlayer) player, model != null) : -1);
+		}
+		
+		//client, process the skill that needs to invoke activated
+		if(player.worldObj.isRemote) {
+			Iterator<Object[]> olds = needsED((AbstractClientPlayer) player).iterator();
+			AbstractClientPlayer cp = (AbstractClientPlayer) player;
 			
-			if(flag) {
-				ConcurrentLinkedQueue<tpc.mc.emc.bodyskill.Pool> olds = olds((AbstractClientPlayer) player);
+			while(olds.hasNext()) {
+				Object[] entry = olds.next();
 				
-				while(!olds.isEmpty()) {
-					olds.poll().activated(player, model);
+				if(model == null && !(boolean) entry[0]) {
+					((tpc.mc.emc.bodyskill.Pool) entry[2]).activated(cp, null);
+					entry[0] = true;
+				} if(model != null && !(boolean) entry[1]) {
+					((tpc.mc.emc.bodyskill.Pool) entry[2]).activated(cp, model);
+					entry[1] = true;
 				}
+				
+				if((boolean) entry[0] && (boolean) entry[1]) olds.remove();
 			}
+		}
+		
+		//process the used skill both side
+		Iterator<tpc.mc.emc.bodyskill.Pool> olds = olds(player).iterator();
+		while(olds.hasNext()) {
+			if(olds.next().monitor(player, model)) olds.remove();
 		}
 		
 		//call item support
 	}
 	
 	/**
+	 * Make the skill join in the queue
+	 * */
+	public static final void activated(AbstractClientPlayer player, tpc.mc.emc.bodyskill.Pool skill) {
+		if(skill == null) throw new NullPointerException();
+		
+		needsED(player).add(new Object[] { false, false, skill });
+	}
+	
+	/**
+	 * Get the queue of client used skill, for activated the used skill with model
+	 * */
+	static final ConcurrentLinkedQueue<Object[]> needsED(AbstractClientPlayer player) {
+		try {
+			return (ConcurrentLinkedQueue<Object[]>) BODYSKILL_NEEDSED.get(player);
+		} catch(Throwable e) { throw new RuntimeException(e); }
+	}
+	
+	/**
 	 * Get the used skill queue
 	 * */
-	public static final ConcurrentLinkedQueue<tpc.mc.emc.bodyskill.Pool> olds(AbstractClientPlayer player) {
+	public static final ConcurrentLinkedQueue<tpc.mc.emc.bodyskill.Pool> olds(EntityPlayer player) {
 		try {
 			return (ConcurrentLinkedQueue<tpc.mc.emc.bodyskill.Pool>) BODYSKILL_OLD.get(player);
 		} catch(Throwable e) { throw new RuntimeException(e); }
+	}
+	
+	/**
+	 * Check if a skill is in monitor status
+	 * */
+	public static final boolean monitor(EntityPlayer player, tpc.mc.emc.bodyskill.Pool skill) {
+		if(skill == null) throw new NullPointerException();
+		
+		try {
+			return ((ConcurrentLinkedQueue<tpc.mc.emc.bodyskill.Pool>) BODYSKILL_OLD.get(player)).contains(skill);
+		} catch(Throwable e) { throw new RuntimeException(e); }
+	}
+	
+	/**
+	 * Check if a skill is in monitor status for the given times
+	 * */
+	public static final boolean monitor(EntityPlayer player, tpc.mc.emc.bodyskill.Pool skill, int times) {
+		Iterator<tpc.mc.emc.bodyskill.Pool> olds = olds(player).iterator();
+		int counter = 0;
+		
+		while(olds.hasNext()) {
+			if(olds.next().equals(skill)) counter++;
+		}
+		
+		return counter == times;
 	}
 	
 	static final int activetime(AbstractClientPlayer player, boolean flag) {
@@ -81,18 +153,32 @@ public final class EMC$Util {
 	}
 	
 	/**
-	 * Start to act, will stop the old skill
+	 * Start to act
 	 * */
 	public static final void act(EntityPlayer player, tpc.mc.emc.bodyskill.Pool skill) {
 		if(player.worldObj.isRemote) { //client side, send to server
-			 Minecraft.getMinecraft().getNetHandler().addToSendQueue(new Packet0(player, skill));
+			if(skill == null && EMC$Util.bodyskill(player) == null) return;
+			if(skill == null || (skill != null && skill.able(player))) Minecraft.getMinecraft().getNetHandler().addToSendQueue(new Packet0(skill));
 		} else { //server side, send to tracked client
 			tpc.mc.emc.bodyskill.Pool old = EMC$Util.bodyskill(player);
-			if(old != null) old.activated(player, null);
-			try { EMC$Util.BODYSKILL.set(player, skill); } catch(Throwable e) {}
-			skill.activate(player, null);
 			
-			((WorldServer) player.worldObj).getEntityTracker().sendPacketToAllAssociatedPlayers(player, new Packet0(player, skill));
+			if(skill == null && old == null) return;
+			if(skill != null && !skill.able(player)) return; //check legal
+			
+			//process the old
+			if(old != null) {
+				old.activated(player, null);
+				EMC$Util.olds(player).add(old);
+			}
+			
+			//server didn't have activeTime, so no need to reset
+			
+			//start new
+			try { EMC$Util.BODYSKILL.set(player, skill); } catch(Throwable e) { throw new RuntimeException(e); }
+			if(skill != null) skill.activate(player, null);
+			
+			//send to clients
+			((WorldServer) player.worldObj).getEntityTracker().sendPacketToAllAssociatedPlayers(player, new Packet0(skill));
 		}
 	}
 	
@@ -152,14 +238,28 @@ public final class EMC$Util {
 	 * */
 	public static final Field locate(String klass, String name) {
 		try {
-			return Class.forName(name, false, EMC$Starter.class.getClassLoader()).getField(name);
+			return Class.forName(klass).getField(name);
+		} catch(Throwable e) {}
+		
+		return null;
+	}
+	
+	/**
+	 * Get a field safely
+	 * */
+	public static final Field locate$(String klass, String name) {
+		try {
+			Field f = Class.forName(klass).getDeclaredField(name);
+			f.setAccessible(true);
+			return f;
 		} catch(Throwable e) {}
 		
 		return null;
 	}
 	
 	public static final Field BODYSKILL = EMC$Util.locate(EntityPlayer.class, "emc_active_bodyskill");
-	public static final Field BODYSKILL_ACTIVETIME = EMC$Util.locate("net/minecraft/src/AbstractClientPlayer", "emc_active_bodyskill");
-	public static final Field BODYSKILL_OLD = EMC$Util.locate("net/minecraft/src/AbstractClientPlayer", "emc_active_bodyskill_old");
+	public static final Field BODYSKILL_OLD = EMC$Util.locate(EntityPlayer.class, "emc_active_bodyskill_old");
+	public static final Field BODYSKILL_ACTIVETIME = EMC$Util.locate("net.minecraft.src.AbstractClientPlayer", "emc_active_bodyskill_time");
+	public static final Field BODYSKILL_NEEDSED = EMC$Util.locate("net.minecraft.src.AbstractClientPlayer", "emc_active_bodyskill_needsED");
 	public static final Class<?>[] EMPTY = new Class[0];
 }

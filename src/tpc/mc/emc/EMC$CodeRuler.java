@@ -46,7 +46,7 @@ final class EMC$CodeRuler {
 			//inject
 			EMC$CodeRuler.inject(ns, mn0.instructions, new $P0(Opcodes.RETURN));
 			break;
-		case "net/minecraft/src/EntityPlayer": //body skill common hack
+		case "net/minecraft/src/EntityPlayer": //body skill common hack, modify steve movement speed
 			cn = EMC$CodeRuler.read(classbuf);
 			mn0 = EMC$CodeRuler.find("onUpdate", "()V", cn.methods.iterator());
 			
@@ -62,14 +62,28 @@ final class EMC$CodeRuler {
 			//inject
 			mn0.instructions.insert(ns);
 			cn.fields.add(new FieldNode(Opcodes.ACC_PUBLIC, "emc_active_bodyskill", "Ltpc/mc/emc/bodyskill/Pool;", null, null));
-			break;
-		case "net/minecraft/src/AbstractClientPlayer": //body skill client hack
-			cn = EMC$CodeRuler.read(classbuf);
-			Iterator<MethodNode> iter = cn.methods.iterator();
+			cn.fields.add(new FieldNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, "emc_active_bodyskill_old", "Ljava/util/concurrent/ConcurrentLinkedQueue;", null, null));
+			
+			//check&prepare modify player fallen
+			if((mn0 = EMC$CodeRuler.find("fall", "(F)V", cn.methods.iterator())) == null) throw new NoSuchMethodError("net.minecraft.src.EntityPlayer.fall(F)V wasn't be Found!");
+			ns = new InsnList();
+			
+			//coding
+			ns.add(new VarInsnNode(Opcodes.FLOAD, 1));
+			ns.add(new LdcInsnNode(new Float(0.45666F)));
+			ns.add(new InsnNode(Opcodes.FMUL));
+			ns.add(new VarInsnNode(Opcodes.FSTORE, 1));
+			
+			//inject
+			mn0.instructions.insert(ns);
+			
+			//prepare new check
+			Iterator<MethodNode> mns = cn.methods.iterator();
 			boolean flag0 = false;
 			
-			while(iter.hasNext()) {
-				mn0 = iter.next();
+			//roll methods to find <init>
+			while(mns.hasNext()) {
+				mn0 = mns.next();
 				
 				if(mn0.name.equals("<init>")) {
 					ns = new InsnList();
@@ -79,7 +93,36 @@ final class EMC$CodeRuler {
 					ns.add(new TypeInsnNode(Opcodes.NEW, "java/util/concurrent/ConcurrentLinkedQueue"));
 					ns.add(new InsnNode(Opcodes.DUP));
 					ns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/util/concurrent/ConcurrentLinkedQueue", "<init>", "()V"));
-					ns.add(new FieldInsnNode(Opcodes.PUTFIELD, "net/minecraft/src/AbstractClientPlayer", "emc_active_bodyskill_old", "Ljava/util/concurrent/ConcurrentLinkedQueue;"));
+					ns.add(new FieldInsnNode(Opcodes.PUTFIELD, "net/minecraft/src/EntityPlayer", "emc_active_bodyskill_old", "Ljava/util/concurrent/ConcurrentLinkedQueue;"));
+					
+					EMC$CodeRuler.inject(ns, mn0.instructions, new $P0(Opcodes.RETURN));
+					flag0 = true;
+				}
+			}
+			
+			//no found!
+			if(!flag0) throw new NoSuchMethodError("net.minecraft.src.EntityPlayer.<init>* wasn't be Found!");
+			break;
+		case "net/minecraft/src/AbstractClientPlayer": //body skill client hack
+			cn = EMC$CodeRuler.read(classbuf);
+			
+			//prepare new check
+			mns = cn.methods.iterator();
+			flag0 = false;
+			
+			//roll methods to find <init>
+			while(mns.hasNext()) {
+				mn0 = mns.next();
+				
+				if(mn0.name.equals("<init>")) {
+					ns = new InsnList();
+					
+					//coding
+					ns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+					ns.add(new TypeInsnNode(Opcodes.NEW, "java/util/concurrent/ConcurrentLinkedQueue"));
+					ns.add(new InsnNode(Opcodes.DUP));
+					ns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/util/concurrent/ConcurrentLinkedQueue", "<init>", "()V"));
+					ns.add(new FieldInsnNode(Opcodes.PUTFIELD, "net/minecraft/src/AbstractClientPlayer", "emc_active_bodyskill_needsED", "Ljava/util/concurrent/ConcurrentLinkedQueue;"));
 					
 					EMC$CodeRuler.inject(ns, mn0.instructions, new $P0(Opcodes.RETURN));
 					flag0 = true;
@@ -90,7 +133,7 @@ final class EMC$CodeRuler {
 			if(!flag0) throw new NoSuchMethodError("net.minecraft.src.AbstractClientPlayer.<init>* wasn't be Found!");
 			
 			cn.fields.add(new FieldNode(Opcodes.ACC_PUBLIC, "emc_active_bodyskill_time", "I", null, new Integer(0)));
-			cn.fields.add(new FieldNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, "emc_active_bodyskill_old", "Ljava/util/concurrent/ConcurrentLinkedQueue;", null, null));
+			cn.fields.add(new FieldNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, "emc_active_bodyskill_needsED", "Ljava/util/concurrent/ConcurrentLinkedQueue;", null, null));
 			break;
 		case "net/minecraft/src/Packet": //register packet
 			cn = EMC$CodeRuler.read(classbuf);
@@ -113,12 +156,49 @@ final class EMC$CodeRuler {
 		case "net/minecraft/src/GameSettings": //register keybinding
 			cn = EMC$CodeRuler.read(classbuf);
 			
+			//prepare <init> check
+			mns = cn.methods.iterator();
+			flag0 = false;
+			
+			//roll methods to find <init>
+			while(mns.hasNext()) {
+				mn0 = mns.next();
+				
+				if(mn0.name.equals("<init>")) {
+					ns = new InsnList();
+					
+					//coding
+					ns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+					ns.add(new InsnNode(Opcodes.DUP));
+					ns.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/src/GameSettings", "keyBindings", "[Lnet/minecraft/src/KeyBinding;"));
+					ns.add(new FieldInsnNode(Opcodes.GETSTATIC, "tpc/mc/emc/EMC$Keybinding", "BREAKSKILL", "Lnet/minecraft/src/KeyBinding;"));
+					ns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "tpc/mc/emc/EMC$Util", "concat", "([Ljava/lang/Object;Ljava/lang/Object;)[Ljava/lang/Object;"));
+					ns.add(new TypeInsnNode(Opcodes.CHECKCAST, "[Lnet/minecraft/src/KeyBinding;"));
+					ns.add(new FieldInsnNode(Opcodes.PUTFIELD, "net/minecraft/src/GameSettings", "keyBindings", "[Lnet/minecraft/src/KeyBinding;"));
+					
+					EMC$CodeRuler.inject(ns, mn0.instructions, new $P0(Opcodes.RETURN));
+					flag0 = true;
+				}
+			}
+			
+			//no found!
+			if(!flag0) throw new NoSuchMethodError("net.minecraft.src.GameSettings.<init>* wasn't be Found!");
 			
 			break;
-		case "net/minecraft/src/Minecarft": //check keypressed
+		case "net/minecraft/src/MovementInputFromOptions": //check keypressed
 			cn = EMC$CodeRuler.read(classbuf);
+			mn0 = EMC$CodeRuler.find("updatePlayerMoveState", "()V", cn.methods.iterator());
 			
+			//check&prepare
+			if(mn0 == null) throw new NoSuchMethodError("net.minecraft.src.MovementInputFromOptions.updatePlayerMoveState()V wasn't be Found!");
+			ns = new InsnList();
 			
+			//coding
+			ns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+			ns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "tpc/mc/emc/EMC$Keybinding", "handleInput", "(Lnet/minecraft/src/MovementInput;)V"));
+			
+			//inject
+			EMC$CodeRuler.inject(ns, mn0.instructions, new $P0(Opcodes.RETURN));
 			break;
 		}
 		
@@ -130,7 +210,7 @@ final class EMC$CodeRuler {
 	 * toArrayByte
 	 * */
 	static final byte[] write(ClassNode cn) {
-		ClassWriter cw = new ClassWriter(0);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		cn.accept(cw);
 		
 		return cw.toByteArray();
