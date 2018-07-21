@@ -27,36 +27,39 @@ public final class EMC$Keybinding {
 		final int jump = sett.keyBindJump.keyCode;
 		final int forward = sett.keyBindForward.keyCode;
 		
+		//receive
+		final int key = Keyboard.getEventKey();
+		final boolean press = Keyboard.getEventKeyState();
+		
 		//modify speed
 		if(!input.sneak) player.moveFlying(0, input.moveForward, 0.05F);
 		
-		//break skill check
-		if(GameSettings.isKeyDown(BREAKSKILL)) EMC$Util.act(player, null);
-		
 		//double jump check
-		if(!player.onGround && Keyboard.getEventKey() == jump) {
-			if(!Keyboard.getEventKeyState()) {
+		if(!player.onGround) {
+			if((!press && key == jump) || key != jump) {
 				JUMPSTATE = true;
-			} else if(JUMPSTATE) {
+			} else if(JUMPSTATE && key == jump) {
 				JUMPSTATE = false;
 				
 				EMC$Util.act(player, Pool.DOUBLEJUMP);
 			}
 		} else JUMPSTATE = false;
 		
-		//direction check
-		if(!player.onGround) {
-			if(Keyboard.isKeyDown(forward)) EMC$Util.act(player, Pool.DIRECTION);
-		}
-		
-		//accel check, join in BETA-VERSTION
+		//accel&direction check, join in BETA-VERSTION
 		if(Keyboard.getEventKey() == forward) {
 			if(Keyboard.getEventKeyState()) {
 				long t = System.currentTimeMillis();
 				
-				if(WWTIMER < 0 && t + WWTIMER < 250) EMC$Util.act(player, Pool.ACCEL);
+				if(WWTIMER < 0 && t + WWTIMER < 250) {
+					if(player.onGround) EMC$Util.act(player, Pool.ACCEL);
+					else EMC$Util.act(player, Pool.DIRECTION);
+				}
+				
 				WWTIMER = t;
 			} else if(WWTIMER > 0) WWTIMER = -WWTIMER;
 		}
+		
+		//break skill check
+		if(GameSettings.isKeyDown(BREAKSKILL)) EMC$Util.act(player, null);
 	}
 }

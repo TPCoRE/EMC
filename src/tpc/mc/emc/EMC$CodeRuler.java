@@ -147,7 +147,7 @@ final class EMC$CodeRuler {
 			ns.add(new LdcInsnNode(new Integer(-1)));
 			ns.add(new InsnNode(Opcodes.ICONST_1));
 			ns.add(new InsnNode(Opcodes.ICONST_1));
-			ns.add(new LdcInsnNode(Type.getType("Ltpc/mc/emc/bodyskill/Packet0;")));
+			ns.add(new LdcInsnNode(Type.getType("Ltpc/mc/emc/Packet0;")));
 			ns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/minecraft/src/Packet", "addIdClassMapping", "(IZZLjava/lang/Class;)V"));
 			
 			//inject

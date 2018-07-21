@@ -7,6 +7,7 @@ import net.minecraft.src.Direction;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.MathHelper;
 import net.minecraft.src.ModelBiped;
+import net.minecraft.src.ModelRenderer;
 import net.minecraft.src.Potion;
 import net.minecraft.src.PotionEffect;
 import net.minecraft.src.Vec3;
@@ -30,10 +31,10 @@ public enum Pool {
 		
 		@Override
 		public void activating(EntityPlayer player, Object model, int activeTime) {
-			if(model != null) return;
+			if(model != null) { rush((ModelBiped) model); return; }
 			World w = player.worldObj;
 			
-			if(0 < activeTime && activeTime < 15) {
+			if(0 < activeTime && activeTime < 4) {
 				Random rnd = player.getRNG();
 				AxisAlignedBB bb = player.boundingBox;
 				double x = (bb.maxX + bb.minX) * 0.5;
@@ -45,25 +46,26 @@ public enum Pool {
 				}
 				
 				Vec3 v = player.getLookVec();
-				player.motionX = v.xCoord * 0.4;
-				player.motionY = v.yCoord * 0.4;
-				player.motionZ = v.zCoord * 0.4;
-			} else if(activeTime > 0) EMC$Util.act(player, null);
+				player.motionX = v.xCoord * 8;
+				player.motionY = v.yCoord * 8;
+				player.motionZ = v.zCoord * 8;
+			} else if(activeTime == 4) EMC$Util.act(player, null);
 			
 			player.fallDistance = 0;
-			player.capabilities.isFlying = true;
-			player.moveEntity(0, 0, 0);
-		}
-		
-		@Override
-		public void activated(EntityPlayer player, Object model) {
-			player.capabilities.isFlying = false;
-			player.motionX = player.motionY = player.motionZ = 0;
 		}
 		
 		@Override
 		public boolean monitor(EntityPlayer player, Object model) {
 			return player.onGround;
+		}
+		
+		@Override
+		public void activated(EntityPlayer player, Object model) {
+			player.motionX = player.motionY = player.motionZ = 0;
+			player.fallDistance = 0;
+			
+			//reset model
+			if(model != null) rush_ed((ModelBiped) model);
 		}
 	}, 
 	
@@ -95,11 +97,20 @@ public enum Pool {
 				
 				Vec3 v = player.getLookVec();
 				player.addVelocity(v.xCoord * 1.065D, v.yCoord * 1.065D, v.zCoord * 1.065D);
-				EMC$Util.act(player, null);
-			} else player.addPotionEffect(new PotionEffect(Potion.weakness.id, 60));
+			} else ;//player.addPotionEffect(new PotionEffect(Potion.weakness.id, 60));
 						
 			player.fallDistance = 0;
-			player.moveEntity(0, 0, 0);
+		}
+		
+		@Override
+		public void activating(EntityPlayer player, Object model, int activeTime) {
+			if(model != null) rush((ModelBiped) model);
+			else if(activeTime == 3) EMC$Util.act(player, null);
+		}
+		
+		@Override
+		public void activated(EntityPlayer player, Object model) {
+			if(model != null) rush_ed((ModelBiped) model);
 		}
 		
 		@Override
@@ -107,6 +118,7 @@ public enum Pool {
 			return player.onGround;
 		}
 	}, 
+	
 	
 	/**
 	 * A skill that allow steve jump third
@@ -121,6 +133,16 @@ public enum Pool {
 		@Override
 		public void activate(EntityPlayer player, Object model) {
 			DOUBLEJUMP.activate(player, model);
+		}
+		
+		@Override
+		public void activating(EntityPlayer player, Object model, int activeTime) {
+			DOUBLEJUMP.activating(player, model, activeTime);
+		}
+		
+		@Override
+		public void activated(EntityPlayer player, Object model) {
+			DOUBLEJUMP.activated(player, model);
 		}
 		
 		@Override
@@ -169,12 +191,21 @@ public enum Pool {
 				}
 				
 				//vel up
-				player.addVelocity(0, 1, 0);
-				EMC$Util.act(player, null);
+				player.motionY = 0.725;
 			}
 			
 			player.fallDistance = 0F;
-			player.moveEntity(0, 0, 0); //不然onGround没更新，按快可以出三段跳(不清楚)
+		}
+		
+		@Override
+		public void activating(EntityPlayer player, Object model, int activeTime) {
+			if(model != null) jump((ModelBiped) model);
+			else if(activeTime == 5) EMC$Util.act(player, null);
+		}
+		
+		@Override
+		public void activated(EntityPlayer player, Object model) {
+			if(model != null) jump_ed((ModelBiped) model);
 		}
 		
 		@Override
@@ -184,11 +215,96 @@ public enum Pool {
 	};
 	
 	
-	
 	//the type of the model is ModelBiped, if the model is nonnull, it means you are in a client-model context
 	public boolean able(EntityPlayer player) { return true; } //both side, return true means the skill is able to start
 	public void activate(EntityPlayer player, Object model) {} //start to activate, both side, client side: model may be null still, if it isn't null, it means you can handle the model
 	public void activating(EntityPlayer player, Object model, int activeTime) {} //during update, in server activeTime equals -1, both side, client side:...
 	public void activated(EntityPlayer player, Object model) {} //on stop, both side, client side:...
 	public boolean monitor(EntityPlayer player, Object model) { return true; } //after stop, the skill will be put in a queue, it allow the used skill to do some post processing, return true means the skill could be remove from the queue, both side
+	
+	private static final void jump(ModelBiped m) {
+		ModelRenderer mr;
+		
+		//hand right up
+		mr = m.bipedRightArm;
+		mr.rotateAngleZ = 0.9773844F;
+		mr.rotationPointY = 3;
+		
+		//hand left up
+		mr = m.bipedLeftArm;
+		mr.rotateAngleZ = -0.9773844F;
+		mr.rotationPointY = 3;
+		
+		//modify right leg
+		mr = m.bipedRightLeg;
+		mr.rotateAngleX = 0.6320364F;
+		mr.rotateAngleY = 0;
+		mr.rotateAngleZ = -0.0743572F;
+		mr.setRotationPoint(-2, 10, -3);
+		
+		//modify left leg
+		mr = m.bipedLeftLeg;
+		mr.rotateAngleX = mr.rotateAngleY = mr.rotateAngleZ = 0;
+	}
+	
+	private static final void jump_ed(ModelBiped m) {
+		ModelRenderer mr;
+		
+		//hand down
+		m.bipedRightArm.rotateAngleZ = m.bipedLeftArm.rotateAngleZ = 0;
+		m.bipedRightArm.rotationPointY = m.bipedLeftArm.rotationPointY = 2;
+		
+		//leg down
+		mr = m.bipedRightLeg;
+		mr.rotateAngleX = 0;
+		mr.rotateAngleZ = 0;
+		mr.setRotationPoint(-2, 12, 0);
+	}
+	
+	private static final void rush(ModelBiped m) {
+		ModelRenderer mr;
+		
+		//modify right arm
+		mr = m.bipedRightArm;
+		mr.rotateAngleX = -1.784573F;
+		mr.rotateAngleY = mr.rotateAngleZ = 0;
+		
+		//modify left arm
+		mr = m.bipedLeftArm;
+		mr.rotateAngleX = 0.9666439F;
+		mr.rotateAngleY = mr.rotateAngleZ = 0;
+		
+		//modify right leg
+		mr = m.bipedRightLeg;
+		mr.rotateAngleX = 0.4833219F;
+		mr.rotateAngleY = mr.rotateAngleZ = 0;
+		mr.setRotationPoint(-2F, 10F, -3.5F);
+		
+		//modify left leg
+		mr = m.bipedLeftLeg;
+		mr.rotateAngleX = 0.2974289F;
+		mr.rotateAngleY = mr.rotateAngleZ = 0;
+		
+	}
+	
+	private static final void rush_ed(ModelBiped m) {
+		ModelRenderer mr;
+		
+		//modify right arm
+		mr = m.bipedRightArm;
+		mr.rotateAngleX = mr.rotateAngleY = mr.rotateAngleZ = 0;
+		
+		//modify left arm
+		mr = m.bipedLeftArm;
+		mr.rotateAngleX = mr.rotateAngleY = mr.rotateAngleZ = 0;
+		
+		//modify right leg
+		mr = m.bipedRightLeg;
+		mr.rotateAngleX = mr.rotateAngleY = mr.rotateAngleZ = 0;
+		mr.setRotationPoint(-2F, 12F, 0F);
+		
+		//modify left leg
+		mr = m.bipedLeftLeg;
+		mr.rotateAngleX = mr.rotateAngleY = mr.rotateAngleZ = 0;
+	}
 }

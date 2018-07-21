@@ -1,4 +1,4 @@
-package tpc.mc.emc.bodyskill;
+package tpc.mc.emc;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -10,7 +10,7 @@ import net.minecraft.src.Minecraft;
 import net.minecraft.src.NetHandler;
 import net.minecraft.src.NetServerHandler;
 import net.minecraft.src.Packet;
-import tpc.mc.emc.EMC$Util;
+import tpc.mc.emc.bodyskill.Pool;
 
 /**
  * Change skill
@@ -39,23 +39,7 @@ public final class Packet0 extends Packet {
 		if(var1.isServerHandler()) {
 			EMC$Util.act(((NetServerHandler) var1).playerEntity, skill);
 		} else { //client side
-			AbstractClientPlayer player = Minecraft.getMinecraft().thePlayer;
-			
-			try {
-				//mark old
-				Pool old = EMC$Util.bodyskill(player);
-				if(old != null) {
-					EMC$Util.activated(player, old);
-					EMC$Util.olds(player).add(old);
-				}
-				
-				//reset activeTime
-				EMC$Util.BODYSKILL_ACTIVETIME.set(player, 0);
-				
-				//start new
-				EMC$Util.BODYSKILL.set(player, skill); //set new
-				if(skill != null) skill.activate(player, null); //client act
-			} catch(Throwable e) { throw new RuntimeException(e); }
+			EMC$Util.act0(Minecraft.getMinecraft().thePlayer, skill);
 		}
 	}
 	
