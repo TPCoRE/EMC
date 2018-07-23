@@ -3,10 +3,10 @@ package tpc.mc.emc.platform.standard;
 /**
  * The interface of MathHelper
  * */
-public interface IMath {
+public abstract class IMath {
 	
-	public float sin(float i);
-	public float cos(float i);
+	public abstract float sin(float i);
+	public abstract float cos(float i);
 	
 	/**
 	 * It is safe

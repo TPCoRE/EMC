@@ -2,6 +2,7 @@ package tpc.mc.emc.tech;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -103,6 +104,13 @@ public final class Board implements Cloneable {
 	 * */
 	public final boolean toggle(Pool tech) {
 		return this.toggle(tech, !this.status.contains(tech));
+	}
+	
+	/**
+	 * View all available teches
+	 * */
+	public final Iterator<Pool> availables() {
+		return this.status.iterator();
 	}
 	
 	/**
