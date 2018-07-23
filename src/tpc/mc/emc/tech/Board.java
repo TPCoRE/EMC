@@ -9,48 +9,49 @@ import java.util.Set;
  * */
 public final class Board implements Cloneable {
 	
-	private Pool head;
-	private Pool body;
-	private Pool feet;
-	
 	private boolean peeker;
+	private Pool[] quick = new Pool[3];
 	private Set<Pool> status = new HashSet<>();
 	
-	public Board() {
-		status.add(Pool.DOUBLEJUMP); //JUST FOR ALPHA VERSION
+	/**
+	 * Create an instance with teches
+	 * */
+	public Board(Pool... avails) {
+		Set<Pool> status = this.status;
 		
+		//INIT
+		for(int i = 0, l = avails.length; i < l; ++i) {
+			status.add(avails[i]);
+		}
 	}
 	
 	/**
 	 * Get the tech that instead in player's head, if there is nothing, it will return null
 	 * */
 	public final Pool headtech() {
-		return this.status.contains(this.head) ? this.head : null;
+		return this.quick[0];
 	}
 	
 	/**
 	 * Get the tech that instead in player's body, if there is nothing, it will return null
 	 * */
 	public final Pool bodytech() {
-		return this.status.contains(this.body) ? this.body : null;
+		return this.quick[1];
 	}
 	
 	/**
 	 * Get the tech that instead in player's feet, if there is nothing, it will return null
 	 * */
 	public final Pool feettech() {
-		return this.status.contains(this.feet) ? this.feet : null;
+		return this.quick[2];
 	}
 	
 	/**
 	 * Set the new, return the old
 	 * */
 	public final Pool headtech(Pool tech) {
-		assert(this.status.contains(tech));
-		assert(!this.peeker);
-		
-		Pool old = this.head;
-		this.head = tech;
+		Pool old = this.check0().quick[0];
+		this.quick[0] = tech;
 		
 		return old;
 	}
@@ -59,11 +60,8 @@ public final class Board implements Cloneable {
 	 * Set the new, return the old
 	 * */
 	public final Pool bodytech(Pool tech) {
-		assert(this.status.contains(tech));
-		assert(!this.peeker);
-		
-		Pool old = this.body;
-		this.body = tech;
+		Pool old = this.check0().quick[1];
+		this.quick[1] = tech;
 		
 		return old;
 	}
@@ -72,11 +70,8 @@ public final class Board implements Cloneable {
 	 * Set the new, return the old
 	 * */
 	public final Pool feettech(Pool tech) {
-		assert(this.status.contains(tech));
-		assert(!this.peeker);
-		
-		Pool old = this.feet;
-		this.feet = tech;
+		Pool old = this.check0().quick[2];
+		this.quick[2] = tech;
 		
 		return old;
 	}
@@ -94,9 +89,13 @@ public final class Board implements Cloneable {
 	 * Set the available status of the given tech, return the old
 	 * */
 	public final boolean toggle(Pool tech, boolean available) {
-		assert(tech != null);
+		if(tech == null) throw new IllegalArgumentException("Null tech!");
+		boolean old = this.status.contains(tech);
 		
-		return available ? this.status.add(tech) : this.status.remove(tech);
+		if(available) this.status.add(tech);
+		else this.status.remove(tech);
+		
+		return old;
 	}
 	
 	/**
@@ -107,22 +106,12 @@ public final class Board implements Cloneable {
 	}
 	
 	/**
-	 * Get all available teches, it is a view
-	 * */
-	public final Set<Pool> availiables() {
-		return Collections.unmodifiableSet(this.status);
-	}
-	
-	/**
-	 * Change the current data into the given data, return 'this'
+	 * Change the current data into the given data, return itself, notice that it will clean the peeker status
 	 * */
 	public final Board accept(Board newval) {
 		assert(newval != null);
 		
-		this.head = newval.head;
-		this.body = newval.body;
-		this.feet = newval.feet;
-		
+		this.quick = newval.quick.clone();
 		this.status = new HashSet<>(newval.status);
 		this.peeker = false;
 		
@@ -130,23 +119,32 @@ public final class Board implements Cloneable {
 	}
 	
 	/**
-	 * Have a look, See {@link #peek()}, return the given {@link Board}, you can't change the status
+	 * Have a look, return the given peeker, you can't change the data or it will throw exception, but you can look through it
 	 * */
 	public final Board peek(Board peeker) {
 		assert(peeker != null);
 		
-		peeker.head = this.head;
-		peeker.body = this.body;
-		peeker.feet = this.feet;
-		
-		peeker.status = Collections.unmodifiableSet(this.status);
 		peeker.peeker = true;
+		peeker.quick = this.quick;
+		peeker.status = Collections.unmodifiableSet(this.status);
 		
 		return peeker;
 	}
 	
+	/**
+	 * Get a copy
+	 * */
 	@Override
 	public final Board clone() {
 		return new Board().accept(this);
+	}
+	
+	/**
+	 * Check the peeker status, if true, throw exception
+	 * */
+	private final Board check0() {
+		if(this.peeker) throw new IllegalStateException("Peeker Status!");
+		
+		return this;
 	}
 }

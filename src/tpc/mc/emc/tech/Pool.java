@@ -4,27 +4,23 @@ import tpc.mc.emc.Stepable;
 import tpc.mc.emc.platform.standard.IOption;
 
 /**
- * Tech Pool
+ * Tech Pool, all teches are here
  * */
 public enum Pool {
 	
+	/**
+	 * A tech that allow player jump twice
+	 * */
 	DOUBLEJUMP {
 		
 		@Override
-		public Stepable take(IOption opt) {
-			return new Stepable() {
-				
-				@Override
-				public Stepable next() {
-					System.out.println(opt.ticks() + ":" + opt.client() + ":" + opt.model()); //TODO
-					return this;
-				}
-			};
+		public Stepable tack(IOption opt) {
+			return null; //TODO
 		}
 	};
 	
 	/**
-	 * Get the steps of the tech
+	 * Get a tech progress with the given option
 	 * */
-	public abstract Stepable take(IOption opt);
+	public abstract Stepable tack(IOption opt);
 }

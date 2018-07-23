@@ -1,21 +1,15 @@
 package tpc.mc.emc.platform.standard;
 
 /**
- * Invoke Minecraft's MathHelper
+ * The interface of MathHelper
  * */
-public abstract class IMath {
+public interface IMath {
 	
-	private static final IMath STATIC = $Impl.impl().math();
-	
-	IMath() {}
-	
-	public abstract float sin(float i);
-	public abstract float cos(float i);
+	public float sin(float i);
+	public float cos(float i);
 	
 	/**
-	 * Get the instance so that you can use it
+	 * It is safe
 	 * */
-	public static final IMath instance() {
-		return STATIC;
-	}
+	public static final IMath INSTANCE = null;
 }

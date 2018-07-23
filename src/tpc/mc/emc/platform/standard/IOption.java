@@ -1,54 +1,27 @@
 package tpc.mc.emc.platform.standard;
 
 /**
- * For taking a tech from {@link tpc.mc.emc.tech.Pool TechPool}, notice that it is thread-unsafe
+ * It stands for a EntityPlayer in EMC
  * */
-public abstract class IOption {
-	
-	IOption() {}
+public interface IOption extends Cloneable {
 	
 	/**
-	 * Whether the option is for client, will return the same value for all the time
+	 * Whether the player is in client
 	 * */
-	public abstract boolean client();
+	public boolean client();
 	
 	/**
-	 * Whether the option is for server, will return the same value for all the time
+	 * Whether the player is in client-model, client-model means you can handle the model of the player
 	 * */
-	public abstract boolean server();
+	public boolean model();
 	
 	/**
-	 * Whether the option if or client-model, client-model means the model operation is available, will return the same value for all the time
+	 * It will alloc a {@link IContext}
 	 * */
-	public abstract boolean model();
+	public IContext alloc();
 	
 	/**
-	 * Add the velocity of the player
+	 * Get a copy, See {@link Cloneable}
 	 * */
-	public abstract void accel(double vx, double vy, double vz);
-	
-	/**
-	 * Add the velocity that depend on the lookvec of the player
-	 * */
-	public abstract void accel(double v);
-	
-	/**
-	 * Make the motion of the player break off
-	 * */
-	public abstract void halt();
-	
-	/**
-	 * Spawn particle in
-	 * */
-	public abstract void particle(double lx, double ly, double lz, double vx, double vy, double vz);
-	
-	/**
-	 * Return the tick existed
-	 * */
-	public abstract int ticks();
-	
-	/**
-	 * Alloc a {@link IContext}
-	 * */
-	public abstract IContext alloc();
+	public IOption clone();
 }
