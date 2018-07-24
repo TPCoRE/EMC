@@ -1,7 +1,5 @@
 package tpc.mc.emc.platform;
 
-import java.net.URL;
-
 /**
  * Platform Info, Version, Vendor information
  * */
@@ -21,14 +19,6 @@ public final class PlatformInfo {
 		return VENDOR;
 	}
 	
-	/**
-	 * Get the currently running minecraft platform's vendor_url
-	 * */
-	public static final URL vurl() {
-		return VENDOR_URL;
-	}
-	
 	private static final String VERSION = null;
 	private static final String VENDOR = null;
-	private static final URL VENDOR_URL = null;
 }

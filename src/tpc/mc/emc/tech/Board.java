@@ -10,7 +10,7 @@ import java.util.Set;
  * */
 public final class Board implements Cloneable {
 	
-	private boolean peeker;
+	private volatile boolean peeker;
 	private Pool[] quick = new Pool[3];
 	private Set<Pool> status = new HashSet<>();
 	

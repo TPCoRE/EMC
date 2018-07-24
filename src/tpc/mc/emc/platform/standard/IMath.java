@@ -9,7 +9,7 @@ public abstract class IMath {
 	public abstract float cos(float i);
 	
 	/**
-	 * It is safe
+	 * The implement for IMath
 	 * */
-	public static final IMath INSTANCE = null;
+	public static final IMath IMPL = null;
 }

@@ -5,48 +5,47 @@ package tpc.mc.emc.platform.standard;
  * */
 public enum EMC {
 	
-	ALPHA_0_0("1.6.4");
+	ALPHA("0.0.0");
 	
 	/**
 	 * Get the current EMC information
 	 * */
 	public static final EMC current() {
-		return ALPHA_0_0;
+		return ALPHA;
 	}
 	
 	//-----------------------------------------------------
 	
 	/**
-	 * The MCVERSION we support
+	 * The current version
 	 * */
-	private final String[] support;
+	private final String version;
 	
 	/**
 	 * Init an enum
 	 * */
-	private EMC(String... supports) {
-		this.support = supports;
+	private EMC(String version) {
+		assert(version != null);
+		
+		this.version = version;
+	}
+	
+	/**
+	 * Get the current minor version
+	 * */
+	public final String minor() {
+		return this.version;
+	}
+	
+	/**
+	 * Get the current major version
+	 * */
+	public final String major() {
+		return this.name();
 	}
 	
 	@Override
 	public String toString() {
-		StringBuffer buffer = new StringBuffer("EMC Version '");
-		
-		//Basic
-		buffer.append(this.name());
-		buffer.append("' SupportedMCV[");
-		
-		//supportedMCV
-		int i, l;
-		String[] support = this.support;
-		for(i = 0, l = support.length - 1; i < l; ++i) {
-			buffer.append(support[i]);
-			buffer.append(" ");
-		}
-		
-		//the last supported
-		buffer.append(support[l]);
-		buffer.append("]");
-		return buffer.toString();
+		return "[" + this.major() + "]" + this.minor();
 	}
 }

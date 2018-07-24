@@ -78,7 +78,7 @@ public abstract class IContext implements AutoCloseable {
 	public abstract void particle(double lx, double ly, double lz, double vx, double vy, double vz);
 	
 	/**
-	 * Act the given tech, no matter if it is available
+	 * Act the given tech, no matter if it is available, notice that client option will have no effect if it is unavailable
 	 * */
 	public abstract void act(Pool tech);
 	
