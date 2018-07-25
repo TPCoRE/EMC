@@ -107,10 +107,10 @@ public final class Board implements Cloneable {
 	}
 	
 	/**
-	 * View all available teches
+	 * Peek all available teches
 	 * */
-	public final Iterator<Pool> availables() {
-		return this.status.iterator();
+	public final Set<Pool> availables() {
+		return Collections.unmodifiableSet(this.status);
 	}
 	
 	/**
