@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 
 import tpc.mc.emc.err.ClosedException;
 import tpc.mc.emc.tech.Board;
-import tpc.mc.emc.tech.Pool;
+import tpc.mc.emc.tech.ITech;
 
 /**
  * The player(EntityPlayer, PlayerModel(May Null))'s handler, notice that if the context was closed, the follow operations will cause exception
@@ -80,12 +80,12 @@ public abstract class IContext implements AutoCloseable {
 	/**
 	 * Act the given tech, no matter if it is available, notice that client option will have no effect if it is unavailable
 	 * */
-	public abstract void act(Pool tech);
+	public abstract void act(ITech tech);
 	
 	/**
 	 * Across the acting teches
 	 * */
-	public abstract void check(Predicate<Pool> proxy);
+	public abstract void check(Predicate<ITech> proxy);
 	
 	/**
 	 * Will be remove in the future, it makes the model a jump action
@@ -120,7 +120,7 @@ public abstract class IContext implements AutoCloseable {
 	/**
 	 * Check if the context has closed, if it was closed the method will throw an exception, return itself
 	 * */
-	public IContext icheck() {
+	public IContext idoubt() {
 		if(this.released()) throw new ClosedException("Current Context has already closed!");
 		
 		return this;
@@ -238,9 +238,9 @@ public abstract class IContext implements AutoCloseable {
 	}
 	
 	/**
-	 * See {@link #act(Pool)}, return itself
+	 * See {@link #act(ITech)}, return itself
 	 * */
-	public IContext iact(Pool tech) {
+	public IContext iact(ITech tech) {
 		this.act(tech);
 		
 		return this;
@@ -249,7 +249,7 @@ public abstract class IContext implements AutoCloseable {
 	/**
 	 * See {@link #check(Predicate)}, return itself
 	 * */
-	public IContext icheck(Predicate<Pool> proxy) {
+	public IContext icheck(Predicate<ITech> proxy) {
 		this.check(proxy);
 		
 		return this;

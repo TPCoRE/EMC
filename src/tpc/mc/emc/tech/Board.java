@@ -3,84 +3,35 @@ package tpc.mc.emc.tech;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * Tech Board, notice that it is thread-unsafe
  * */
-public final class Board implements Cloneable {
+public final class Board implements Cloneable, Iterable<ITech> {
 	
-	private volatile boolean peeker;
-	private Pool[] quick = new Pool[3];
-	private Set<Pool> status = new HashSet<>();
+	private Set<ITech> status = new HashSet<>();
 	
 	/**
 	 * Create an instance with teches
 	 * */
-	public Board(Pool... avails) {
-		Set<Pool> status = this.status;
+	public Board(ITech... avails) {
+		Set<ITech> status = this.status;
 		
 		//INIT
 		for(int i = 0, l = avails.length; i < l; ++i) {
-			status.add(avails[i]);
+			ITech avail = avails[i];
+			
+			Objects.requireNonNull(avail);
+			status.add(avail);
 		}
-	}
-	
-	/**
-	 * Get the tech that instead in player's head, if there is nothing, it will return null
-	 * */
-	public final Pool headtech() {
-		return this.quick[0];
-	}
-	
-	/**
-	 * Get the tech that instead in player's body, if there is nothing, it will return null
-	 * */
-	public final Pool bodytech() {
-		return this.quick[1];
-	}
-	
-	/**
-	 * Get the tech that instead in player's feet, if there is nothing, it will return null
-	 * */
-	public final Pool feettech() {
-		return this.quick[2];
-	}
-	
-	/**
-	 * Set the new, return the old
-	 * */
-	public final Pool headtech(Pool tech) {
-		Pool old = this.check0().quick[0];
-		this.quick[0] = tech;
-		
-		return old;
-	}
-	
-	/**
-	 * Set the new, return the old
-	 * */
-	public final Pool bodytech(Pool tech) {
-		Pool old = this.check0().quick[1];
-		this.quick[1] = tech;
-		
-		return old;
-	}
-	
-	/**
-	 * Set the new, return the old
-	 * */
-	public final Pool feettech(Pool tech) {
-		Pool old = this.check0().quick[2];
-		this.quick[2] = tech;
-		
-		return old;
 	}
 	
 	/**
 	 * Whether a tech is available
 	 * */
-	public final boolean available(Pool tech) {
+	public final boolean available(ITech tech) {
 		assert(tech != null);
 		
 		return this.status.contains(tech);
@@ -89,8 +40,8 @@ public final class Board implements Cloneable {
 	/**
 	 * Set the available status of the given tech, return the old
 	 * */
-	public final boolean toggle(Pool tech, boolean available) {
-		if(tech == null) throw new IllegalArgumentException("Null tech!");
+	public final boolean toggle(ITech tech, boolean available) {
+		Objects.requireNonNull(tech);
 		boolean old = this.status.contains(tech);
 		
 		if(available) this.status.add(tech);
@@ -100,17 +51,10 @@ public final class Board implements Cloneable {
 	}
 	
 	/**
-	 * Change the available status of the given tech, return the old, See {@link #toggle(Pool, boolean)}
+	 * Change the available status of the given tech, return the old, See {@link #toggle(ITech, boolean)}
 	 * */
-	public final boolean toggle(Pool tech) {
+	public final boolean toggle(ITech tech) {
 		return this.toggle(tech, !this.status.contains(tech));
-	}
-	
-	/**
-	 * Peek all available teches
-	 * */
-	public final Set<Pool> availables() {
-		return Collections.unmodifiableSet(this.status);
 	}
 	
 	/**
@@ -119,9 +63,7 @@ public final class Board implements Cloneable {
 	public final Board accept(Board newval) {
 		assert(newval != null);
 		
-		this.quick = newval.quick.clone();
 		this.status = new HashSet<>(newval.status);
-		this.peeker = false;
 		
 		return this;
 	}
@@ -132,8 +74,6 @@ public final class Board implements Cloneable {
 	public final Board peek(Board peeker) {
 		assert(peeker != null);
 		
-		peeker.peeker = true;
-		peeker.quick = this.quick;
 		peeker.status = Collections.unmodifiableSet(this.status);
 		
 		return peeker;
@@ -148,11 +88,10 @@ public final class Board implements Cloneable {
 	}
 	
 	/**
-	 * Check the peeker status, if true, throw exception
+	 * Peek all available teches
 	 * */
-	private final Board check0() {
-		if(this.peeker) throw new IllegalStateException("Peeker Status!");
-		
-		return this;
+	@Override
+	public final Iterator<ITech> iterator() {
+		return Collections.unmodifiableSet(this.status).iterator();
 	}
 }
