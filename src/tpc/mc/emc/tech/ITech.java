@@ -1,73 +1,21 @@
 package tpc.mc.emc.tech;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.security.SecureRandom;
 
 import tpc.mc.emc.Stepable;
 import tpc.mc.emc.platform.standard.IOption;
 
 /**
- * Tech
+ * Basic Tech, notice that if a primitive field in the ITech class has a modifier 'final' and not 'transient' will be store in the disk and flush to network
  * */
-public abstract class ITech implements Cloneable, Comparable<ITech> {
+public abstract class ITech {
 	
-	/**
-	 * Get a tech progress with the given option
-	 * */
-	public abstract Stepable tack(IOption opt);
-	
-	/**
-	 * Check if the two are same
-	 * */
-	@Override
-	public final boolean equals(Object obj) {
-		if(obj == this) return true;
-		if(obj == null) return false;
-		if(!(obj instanceof ITech)) return false;
-		
-		return this.CACHE.equals(((ITech) obj).CACHE);
-	}
-	
-	/**
-	 * The hash value of the tech
-	 * */
-	@Override
-	public final int hashCode() {
-		return this.CACHE.hashCode();
-	}
-	
-	@Override
-	public final int compareTo(ITech other) {
-		assert(other != null);
-		
-		return this.CACHE.compareTo(other.CACHE);
-	}
-	
-	@Override
-	public final ITech clone() {
-		return this;
-	}
-	
-	/**
-	 * Get the id of the tech
-	 * */
-	public final UUID identifier() {
-		return this.CACHE;
-	}
-	
-	/**
-	 * Get from EMPOWERED
-	 * */
-	public static final ITech deal(UUID id) {
-		assert(id != null);
-		
-		return EMPOWERED.getOrDefault(id, NOP);
-	}
+	private static final SecureRandom RNG = new SecureRandom();
 	
 	/**
 	 * A tech that do nothing
 	 * */
-	public static final ITech NOP = new ITech() {
+	public static final ITech NOP = new ITech(null) {
 		
 		@Override
 		public Stepable tack(IOption opt) {
@@ -76,37 +24,61 @@ public abstract class ITech implements Cloneable, Comparable<ITech> {
 	};
 	
 	/**
-	 * Truly Get
+	 * Create a tech, notice that each one is the only one
 	 * */
-	private final UUID identifier0() {
-		char[] arr = this.getClass().getName().toCharArray();
-		byte[] arr0 = new byte[arr.length * 2];
-		
-		for(int i = 0, l = arr.length; i < l; ++i) {
-			char c = arr[i];
+	public ITech() {
+		synchronized(RNG) {
+			long id;
 			
-			arr0[i] = (byte) (c & 0xFF);
-			arr0[i + 1] = (byte) (c >>> 4);
+			while((id = RNG.nextLong()) == 0);
+			
+			this.identifier = id;
 		}
-		
-		return UUID.nameUUIDFromBytes(arr0);
 	}
 	
 	/**
-	 * Internal Init
+	 * Internal Constructor
 	 * */
-	{
-		synchronized(EMPOWERED) {
-			final UUID cache = this.CACHE = this.identifier0();
-			
-			if(EMPOWERED.containsKey(cache)) {
-				EMPOWERED.remove(cache);
-				
-				throw new IllegalStateException("THE TECH HAS ALREADY EMPOWERED!");
-			} else EMPOWERED.put(cache, this);
-		}
+	private ITech(Object reserved) {
+		this.identifier = 0;
 	}
 	
-	private final UUID CACHE;
-	private static final HashMap<UUID, ITech> EMPOWERED = new HashMap<>();
+	/**
+	 * Get a tech progress with the given option
+	 * */
+	public abstract Stepable tack(IOption opt);
+	
+	/**
+	 * Get the identifier of the tech
+	 * */
+	public final long identifier() {
+		return this.identifier;
+	}
+	
+	/**
+	 * Whether the two are the same
+	 * */
+	@Override
+	public final boolean equals(Object obj) {
+		if(obj == this) return true;
+		if(obj == null) return false;
+		if(!(obj instanceof ITech)) return false;
+		
+		return this.identifier == ((ITech) obj).identifier;
+	}
+	
+	/**
+	 * Get the hashcode of the tech
+	 * */
+	@Override
+	public final int hashCode() {
+		long id = this.identifier;
+		
+		return (int) (id ^ (id >>> 32));
+	}
+	
+	/**
+	 * The id of the tech, notice that the id of NOP is zero
+	 * */
+	private final long identifier;
 }

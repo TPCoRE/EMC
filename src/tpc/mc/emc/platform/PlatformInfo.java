@@ -1,24 +1,17 @@
 package tpc.mc.emc.platform;
 
+import java.net.URL;
+
 /**
- * Platform Info, Version, Vendor information
+ * Platform Info, Version, Vendor information, notice that the info below may be null, and it will be set by impl
  * */
 public final class PlatformInfo {
 	
-	/**
-	 * Get the Currently Running Minecraft Platform's Version
-	 * */
-	public static final String version() {
-		return VERSION;
-	}
+	public static final String VERSION_MC = null;
+	public static final String VENDOR_MC = null;
+	public static final URL    VENDOR_URL_MC = null;
 	
-	/**
-	 * Get the Currently Running Minecraft Platform's Vendor
-	 * */
-	public static final String vendor() {
-		return VENDOR;
-	}
-	
-	private static final String VERSION = null;
-	private static final String VENDOR = null;
+	public static final String VERSION_IMPL = null;
+	public static final String VENDOR_IMPL = null;
+	public static final URL    VENDOR_URL_IMPL = null;
 }

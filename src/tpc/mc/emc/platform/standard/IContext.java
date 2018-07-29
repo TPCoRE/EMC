@@ -3,15 +3,19 @@ package tpc.mc.emc.platform.standard;
 import java.util.function.Predicate;
 
 import tpc.mc.emc.err.ClosedException;
-import tpc.mc.emc.tech.Board;
 import tpc.mc.emc.tech.ITech;
 
 /**
- * The player(EntityPlayer, PlayerModel(May Null))'s handler, notice that if the context was closed, the follow operations will cause exception
+ * The player(EntityPlayer, PlayerModel(May Null))'s handler, notice that if the context was closed or the visitor thread isn't the owner of the context, the follow operations will cause exception
  * */
 public abstract class IContext implements AutoCloseable {
 	
 	//---------------------------------Basic------------------------------
+	
+	/**
+	 * Check if the given thread is the owner of the context
+	 * */
+	public abstract boolean verify(Thread owner);
 	
 	/**
 	 * Check if the context belongs to the given {@link IOption}
@@ -27,23 +31,6 @@ public abstract class IContext implements AutoCloseable {
 	 * Close the current context, dup close will throw exception
 	 * */
 	public abstract void close();
-	
-	//---------------------------------Techboard Handler------------------
-	
-	/**
-	 * Just have a look, it will change the given {@link Board} into a peeker, and cover the data in it, as a peeker the {@link Board} can't be change or it will throw exception, notice that the peeker is still available after the context close
-	 * */
-	public abstract void peek(Board peeker);
-	
-	/**
-	 * Similar to peeker, but the accepter can change data and it will no effect the data in the current context
-	 * */
-	public abstract void export(Board accepter);
-	
-	/**
-	 * Accept data from the given exporter, notice that the change will be sent after close
-	 * */
-	public abstract void accept(Board exporter);
 	
 	//---------------------------------Player Handler---------------------
 	
@@ -78,7 +65,7 @@ public abstract class IContext implements AutoCloseable {
 	public abstract void particle(double lx, double ly, double lz, double vx, double vy, double vz);
 	
 	/**
-	 * Act the given tech, no matter if it is available, notice that client option will have no effect if it is unavailable
+	 * Act the given tech, no matter if it is available
 	 * */
 	public abstract void act(ITech tech);
 	
@@ -86,18 +73,6 @@ public abstract class IContext implements AutoCloseable {
 	 * Across the acting teches
 	 * */
 	public abstract void check(Predicate<ITech> proxy);
-	
-	/**
-	 * Will be remove in the future, it makes the model a jump action
-	 * */
-	@Deprecated
-	public abstract void jump();
-	
-	/**
-	 * Will be remove in the future, it makes the model a rush action
-	 * */
-	@Deprecated
-	public abstract void rush();
 	
 	//---------------------------------Helper(Basic)------------------------------
 	
@@ -118,53 +93,11 @@ public abstract class IContext implements AutoCloseable {
 	}
 	
 	/**
-	 * Check if the context has closed, if it was closed the method will throw an exception, return itself
+	 * Check if the context has closed, and check the ownership, if it was closed the method will throw an exception, return itself
 	 * */
 	public IContext idoubt() {
-		if(this.released()) throw new ClosedException("Current Context has already closed!");
-		
-		return this;
-	}
-	
-	//---------------------------------Helper(Techboard Handler)-------------------
-	
-	/**
-	 * See {@link #peek(Board)}, return the given peeker
-	 * */
-	public Board ipeek(Board peeker) {
-		this.peek(peeker);
-		
-		return peeker;
-	}
-	
-	/**
-	 * See {@link #peek(Board)}, return a new one
-	 * */
-	public Board ipeek() {
-		return this.ipeek(new Board());
-	}
-	
-	/**
-	 * See {@link #export(Board)}, return the given accepter
-	 * */
-	public Board iexport(Board accepter) {
-		this.export(accepter);
-		
-		return accepter;
-	}
-	
-	/**
-	 * See {@link #export(Board)}, return a new one
-	 * */
-	public Board iexport() {
-		return this.iexport(new Board());
-	}
-	
-	/**
-	 * See {@link #accept(Board)}, return itself
-	 * */
-	public IContext iaccept(Board exporter) {
-		this.accept(exporter);
+		if(this.released()) throw new ClosedException();
+		if(!this.verify(Thread.currentThread())) throw new IllegalAccessError();
 		
 		return this;
 	}

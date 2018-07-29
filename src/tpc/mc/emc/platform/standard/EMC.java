@@ -33,7 +33,7 @@ public enum EMC {
 	/**
 	 * Get the current minor version
 	 * */
-	public final String minor() {
+	public final String version() {
 		return this.version;
 	}
 	
@@ -46,6 +46,6 @@ public enum EMC {
 	
 	@Override
 	public String toString() {
-		return "[" + this.major() + "]" + this.minor();
+		return "[" + this.major() + "]" + this.version();
 	}
 }

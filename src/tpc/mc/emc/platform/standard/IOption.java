@@ -6,11 +6,6 @@ package tpc.mc.emc.platform.standard;
 public abstract class IOption implements Cloneable {
 	
 	/**
-	 * Whether the player is in client
-	 * */
-	public abstract boolean client();
-	
-	/**
 	 * Whether the player is in client-model, client-model means you can handle the model of the player
 	 * */
 	public abstract boolean model();
