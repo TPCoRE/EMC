@@ -10,15 +10,19 @@ import tpc.mc.emc.tech.ITech;
  * */
 public abstract class IContext implements AutoCloseable {
 	
+	private static final String MESSAGE0 = "CONTEXT ALREADY CLOSED!";
+	private static final String MESSAGE1 = "THREAD OWNERSHIP ERROR!";
+	private static final String MESSAGE2 = "OPTION OWNERSHIP ERROR!";
+	
 	//---------------------------------Basic------------------------------
 	
 	/**
-	 * Check if the given thread is the owner of the context
+	 * Check if the given thread is the owner of the context, it will never throw exception
 	 * */
 	public abstract boolean verify(Thread owner);
 	
 	/**
-	 * Check if the context belongs to the given {@link IOption}
+	 * Check if the context belongs to the given {@link IOption}, it will never throw exception
 	 * */
 	public abstract boolean verify(IOption opt);
 	
@@ -87,7 +91,7 @@ public abstract class IContext implements AutoCloseable {
 	 * See {@link #verify(IOption)}, return itself
 	 * */
 	public IContext iverify(IOption opt, boolean expect) {
-		if(this.verify(opt) != expect) throw new IllegalAccessError();
+		if(this.verify(opt) != expect) throw new IllegalAccessError(MESSAGE2);
 		
 		return this;
 	}
@@ -96,8 +100,8 @@ public abstract class IContext implements AutoCloseable {
 	 * Check if the context has closed, and check the ownership, if it was closed the method will throw an exception, return itself
 	 * */
 	public IContext idoubt() {
-		if(this.released()) throw new ClosedException();
-		if(!this.verify(Thread.currentThread())) throw new IllegalAccessError();
+		if(this.released()) throw new ClosedException(MESSAGE0);
+		if(!this.verify(Thread.currentThread())) throw new IllegalAccessError(MESSAGE1);
 		
 		return this;
 	}

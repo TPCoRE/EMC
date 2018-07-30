@@ -4,6 +4,7 @@
 		<accessrules>
 			<accessrule kind="accessible" pattern="sun/reflect/Reflection"/>
 			<accessrule kind="accessible" pattern="sun/misc/Contended"/>
+			<accessrule kind="accessible" pattern="sun/misc/Unsafe"/>
 		</accessrules>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>

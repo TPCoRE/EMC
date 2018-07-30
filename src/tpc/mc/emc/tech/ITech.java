@@ -6,7 +6,8 @@ import tpc.mc.emc.Stepable;
 import tpc.mc.emc.platform.standard.IOption;
 
 /**
- * Basic Tech, notice that if a primitive field in the ITech class has a modifier 'final' and not 'transient' will be store in the disk and flush to network
+ * Basic Tech, notice that if a {@link Class#isPrimitive()} field in the ITech class has a modifier 'final' and not 'transient' will be store in the disk and flush to network, 
+ * MethodName+MethodDesc changed, field type, field name changed, super class changed will cause serialize failed, then your tech may be {@link #NOP}
  * */
 public abstract class ITech {
 	

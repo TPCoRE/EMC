@@ -19,4 +19,10 @@ public abstract class IOption implements Cloneable {
 	 * Get a copy, See {@link Cloneable}
 	 * */
 	public abstract IOption clone();
+	
+	/**
+	 * Check if the two are the same
+	 * */
+	@Override
+	public abstract boolean equals(Object obj);
 }
