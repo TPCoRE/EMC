@@ -1,16 +1,23 @@
 package tpc.mc.emc.tech;
 
-import java.util.Iterator;
-
 /**
  * The tech that contains some information
  * */
 public abstract class INamable extends ITech {
 	
+	private static final long serialVersionUID = 1L;
+	
 	/**
-	 * Return a iterator, null is allowed
+	 * Constructor, See {@link #ITech(byte[])}
 	 * */
-	public abstract Iterator<String> infos(Language lang);
+	public INamable(byte[] attributes) {
+		super(attributes);
+	}
+	
+	/**
+	 * Return a iterable
+	 * */
+	public abstract Iterable<String> infos(Language lang);
 	
 	public static final Language EN_US = new Language();
 	public static final Language ZH_CN = new Language();
