@@ -1,9 +1,9 @@
 package tpc.mc.emc.platform.standard;
 
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 
 import tpc.mc.emc.err.ClosedException;
-import tpc.mc.emc.tech.ITech;
+import tpc.mc.emc.tech.Technique;
 
 /**
  * The player(EntityPlayer, PlayerModel(May Null))'s handler, notice that if the context was closed or the visitor thread isn't the owner of the context, the follow operations will cause exception
@@ -71,12 +71,12 @@ public abstract class IContext implements AutoCloseable {
 	/**
 	 * Act the given tech, no matter if it is available
 	 * */
-	public abstract void act(ITech tech);
+	public abstract void act(Technique tech);
 	
 	/**
 	 * Across the acting teches
 	 * */
-	public abstract void check(Predicate<ITech> proxy);
+	public abstract void check(Consumer<Technique> proxy);
 	
 	//---------------------------------Helper(Basic)------------------------------
 	
@@ -175,18 +175,18 @@ public abstract class IContext implements AutoCloseable {
 	}
 	
 	/**
-	 * See {@link #act(ITech)}, return itself
+	 * See {@link #act(Technique)}, return itself
 	 * */
-	public IContext iact(ITech tech) {
+	public IContext iact(Technique tech) {
 		this.act(tech);
 		
 		return this;
 	}
 	
 	/**
-	 * See {@link #check(Predicate)}, return itself
+	 * See {@link #check(Consumer)}, return itself
 	 * */
-	public IContext icheck(Predicate<ITech> proxy) {
+	public IContext icheck(Consumer<Technique> proxy) {
 		this.check(proxy);
 		
 		return this;

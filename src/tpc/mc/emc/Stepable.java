@@ -1,7 +1,7 @@
 package tpc.mc.emc;
 
 /**
- * A progress that can process step by step
+ * A progress that can be processed step by step
  * */
 @FunctionalInterface
 public interface Stepable {
@@ -12,7 +12,7 @@ public interface Stepable {
 	public Stepable next();
 	
 	/**
-	 * A step that do nothing, and it will end up the progress
+	 * Nothing to process
 	 * */
-	public static final Stepable NOP = () -> null;
+	public static final Stepable NOP = null;
 }
