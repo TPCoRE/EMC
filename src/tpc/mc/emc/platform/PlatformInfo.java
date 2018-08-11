@@ -3,7 +3,7 @@ package tpc.mc.emc.platform;
 import java.net.URL;
 
 /**
- * Platform Info, Version, Vendor information, notice that the info below may be null, and it will be set by impl
+ * Platform Info, Version, Vendor information, notice that althought the information below will be set by the impl, but it may still be null
  * */
 public final class PlatformInfo {
 	

@@ -11,6 +11,13 @@ import tpc.mc.emc.platform.standard.IOption;
  * */
 public interface IAttribute extends Serializable {
 	
-	public abstract Stepable tack(IOption opt);
-	public abstract Iterable<String> info(Locale loc);
+	/**
+	 * Produce a {@link Stepable}
+	 * */
+	Stepable tack(IOption opt);
+	
+	/**
+	 * Get the tech's information
+	 * */
+	Iterable<String> info(Locale loc);
 }

@@ -7,12 +7,12 @@ package tpc.mc.emc;
 public interface Stepable {
 	
 	/**
-	 * Process the current step and return the next step, return null means there were nothing to process next
+	 * Process the current step and return the next step, return {@link #NOP} means there were nothing to process next
 	 * */
 	public Stepable next();
 	
 	/**
-	 * Nothing to process
+	 * Nothing to process, the value of it is null
 	 * */
 	public static final Stepable NOP = null;
 }

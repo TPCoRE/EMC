@@ -3,13 +3,13 @@ package tpc.mc.emc.platform.standard;
 /**
  * The interface of MathHelper
  * */
-public abstract class IMath {
+public interface IMath {
 	
-	public abstract float sin(float i);
-	public abstract float cos(float i);
+	float sin(float i);
+	float cos(float i);
 	
 	/**
-	 * The implement for IMath
+	 * The implement for {@link IMath}
 	 * */
 	public static final IMath IMPL = null;
 }

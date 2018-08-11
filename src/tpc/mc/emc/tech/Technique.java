@@ -1,5 +1,8 @@
 package tpc.mc.emc.tech;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.UUID;
@@ -49,6 +52,13 @@ public final class Technique implements Serializable {
 	}
 	
 	/**
+	 * Get the attribute of the tech
+	 * */
+	public IAttribute attribute() {
+		return this.attribute;
+	}
+	
+	/**
 	 * If the two are the same
 	 * */
 	@Override
@@ -68,8 +78,8 @@ public final class Technique implements Serializable {
 		return this.identifier.hashCode();
 	}
 	
-	private final UUID identifier;
-	private final IAttribute attribute;
+	private transient UUID identifier;
+	private transient IAttribute attribute;
 	
 	private static final long serialVersionUID = 1L;
 	private static final WeakHashMap<Technique, Technique> INTERNER = new WeakHashMap<>();
@@ -83,5 +93,27 @@ public final class Technique implements Serializable {
 			if(tmp == null) INTERNER.put(tmp = this, this);
 			return tmp;
 		}
+	}
+	
+	/**
+	 * Override, readObject
+	 * */
+	private void readObject(ObjectInputStream input) throws IOException {
+		try {
+			this.attribute = (IAttribute) input.readObject();
+			this.identifier = new UUID(input.readLong(), input.readLong());
+		} catch(Throwable e) {
+			this.identifier = NOP.identifier;
+			this.attribute = null;
+		}
+	}
+	
+	/**
+	 * Override, writeObject
+	 * */
+	private void writeObject(ObjectOutputStream output) throws IOException {
+		output.writeObject(this.attribute);
+		output.writeLong(this.identifier.getMostSignificantBits());
+		output.writeLong(this.identifier.getLeastSignificantBits());
 	}
 }

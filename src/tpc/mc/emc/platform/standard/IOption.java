@@ -1,28 +1,17 @@
 package tpc.mc.emc.platform.standard;
 
 /**
- * It stands for a player(EntityPlayer, PlayerModel) in EMC
+ * Stand for the attributes of a player, things in it are all unmodifiable
  * */
-public abstract class IOption implements Cloneable {
+public interface IOption {
 	
 	/**
 	 * Whether the player is in client-model, client-model means you can handle the model of the player
 	 * */
-	public abstract boolean model();
+	boolean model();
 	
 	/**
 	 * It will alloc a {@link IContext}
 	 * */
-	public abstract IContext alloc();
-	
-	/**
-	 * Get a copy, See {@link Cloneable}
-	 * */
-	public abstract IOption clone();
-	
-	/**
-	 * Check if the two are the same
-	 * */
-	@Override
-	public abstract boolean equals(Object obj);
+	IContext alloc();
 }
